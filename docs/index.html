@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>One Photo</title>
+    <meta name="theme-color" content="#23262c" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+
+    <style>
+      * {box-sizing: border-box;}
+
+      html {
+        background-color: rgb(35 38 44);
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+      }
+
+      #initial {
+        margin: 40px auto;
+        max-width: 480px;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #36e5a3;
+        margin: 0 0 0.5em 0;
+      }
+
+      p {
+        color: #b1beb9;
+      }
+
+      p a {
+        color: inherit;
+      }
+
+      footer {
+        padding-top: 30px;
+      }
+
+      footer p {
+        font-size: 0.9em;
+      }
+
+      #photo {
+        display: none;
+      }
+
+      #upload-button span {
+        display: block;
+        padding: 12px;
+        color: #fff;
+        background-color:#3aa57f;
+        border-radius: 3px;
+        font-weight: bold;
+        text-align: center;
+        font-size: 1.5em;
+        box-shadow: 0 3px 3px rgba(0,0,0,0.1);
+        text-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+        cursor: pointer;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        margin: 1em 0;
+      }
+
+      #upload-button span:hover {
+        background-color: #369b78;
+        border-top: 1px solid #369b78;
+        box-shadow: none;
+      }
+
+      #return-button span {
+        display: block;
+        padding: 0.5em 1em;
+        color: #fff;
+        background-color:#596360;
+        border-radius: 3px;
+        font-weight: bold;
+        text-align: center;
+        font-size: 1.5em;
+        box-shadow: 0 3px 3px rgba(0,0,0,0.1);
+        text-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+        cursor: pointer;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        margin: 1em 0;
+      }
+
+      #return-button span:hover {
+        background-color: #4d5754;
+        border-top: 1px solid #4d5754;
+        box-shadow: none;
+      }
+
+      .close-button {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        padding: 10px;
+        cursor: pointer;
+        color: #36e5a3;
+      }
+
+      #viewer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      #viewer img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='initial'>
+      <h1>One Photo</h1>
+      <p>Keep a favorite photo close by, similar to a wallet photo.</p>
+      <p>
+        The photo is stored locally and is never sent to a third-party.
+        Add this page to your home screen for quick access.
+      </p>
+
+      <label id='upload-button'>
+        <input id='photo' type='file' name='photo'>
+        <span>Choose photo…</span>
+      </label>
+
+      <label id='return-button'>
+        <span>Keep existing photo</span>
+      </label>
+
+      <footer>
+        <p>One Photo is <a href='https://github.com/andrejewski/one-photo'>open source</a> and made by <a href='https://jew.ski'>Chris</a>.</p>
+      </footer>
+    </div>
+
+    <div id='viewer'></div>
+
+    <script>
+      const initial = document.getElementById('initial')
+      const viewer = document.getElementById('viewer')
+
+      function setVisible (element, isVisible) {
+        if (isVisible) {
+          element.style.display = null
+        } else {
+          element.style.display = 'none'
+        }
+      }
+
+      function returnToViewer () {
+        setVisible(initial, false)
+        setVisible(viewer, true)
+      }
+
+      function hasSavedImage () {
+        return !!window.localStorage.getItem('i')
+      }
+
+      function showInitialScreen () {
+        const input = document.getElementById('photo')
+        input.onchange = handlePhotoSubmit
+
+        const returnButton = document.getElementById('return-button')
+        returnButton.onclick = returnToViewer
+
+        setVisible(initial, true)
+        setVisible(returnButton, hasSavedImage())
+        setVisible(viewer, false)
+      }
+
+      function renderImage (imageDataURL) {
+        setVisible(viewer, true)
+        setVisible(initial, false)
+
+        viewer.innerHTML = ''
+        const img = document.createElement('img')
+        img.src = imageDataURL
+
+        const close = document.createElement('div')
+        close.classList.add('close-button')
+        close.innerText = '⏎'
+        close.onclick = showInitialScreen
+
+        viewer.appendChild(img)
+        viewer.appendChild(close)
+      }
+
+      function handlePhotoSubmit (event) {
+        const file = event.target.files[0]
+        if (file) {
+          const reader = new FileReader()
+
+          reader.addEventListener("load", () => {
+            const url = reader.result
+            window.localStorage.setItem('i', url)
+            
+            renderImage(url)
+          }, false);
+
+          reader.readAsDataURL(file)
+        }
+      }
+
+      function main () {        
+        const savedImageDataURL = window.localStorage.getItem('i')
+        if (!savedImageDataURL) {
+          showInitialScreen()
+          return
+        }
+
+        renderImage(savedImageDataURL)
+      }
+
+      main()
+    </script>
+  </body>
+</html>
